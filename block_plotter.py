@@ -3,15 +3,18 @@ import nbt
 
 
 ### make an nbtfile
-nbtfile = nbt.region.RegionFile("r.-1.-1.mca")
+world = nbt.world.WorldFolder("world")
+
 ### get your chunk
-chunk = nbtfile.get_nbt(1,1)
+world.get_nbt(1,1)['Level']['Sections'][0]['Blocks']
 
-### do things to your hcunk
+# TODO:
+# function that maps the world.get_nbt(x,z)['Level']['Sections'][0]['Blocks'] String to locations in a 16 x 16 x 16 block
 
 
-print chunk['Level']['Sections'][0]['Blocks']
-script_dir = path.dirname("/Users/ryanlambert/minecraft-server-new/world/region/")
+# layout mining pathway across length of N chunks where N is some symmetric layout
 
-mca_file = "r.-1.-1.mca"
 
+
+
+#script_dir = path.dirname("/Users/ryanlambert/minecraft-server-new/world/region/")
