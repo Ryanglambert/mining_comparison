@@ -5,26 +5,43 @@ import math
 global x_chunk_section_size
 global y_chunk_section_size
 global z_chunk_section_size
-
 x_chunk_section_size = 16
 y_chunk_section_size = 16
 z_chunk_section_size = 16
+global x_index_step = 1
+global y_index_step = y_chunk_section_size
+global z_index_step = z_chunk_section_size * y_chunk_section_size
+
 
 
 class mining_path:
-    def __init__(self, 3d_sparse_truth_array):
-        """one of these"""
-        self.3d_sparse_truth_array = 3d_sparse_truth_array
-        """ not sure which one I will use yet"""
-        self.1d_sparse_truth_array = convert_3d_positions_to_1darray(3d_sparse_truth_array)
+    def __init__(self, mining_path_3d_array):
+        self.mining_path_3d_array = mining_path_3d_array
+        self.mining_adjacency_1d_array = []
+        self.1d_sparse_adjacency_path_array = []
         pass
     
-    def get_adjacent_blocks(self):
-        for i in self.3d_sparse_truth_array:
+    def get_3d_truth_array(self):
+        return self.3d_sparse_truth_array
 
+    def get_1d_truth_array(self):
+        return self.1d_sparse_truth_array
+    
+    def set_adjacent_blocks(self):
+        for i in self.get_1d_truth_array():
+            try:
+                self.3d_sparse_truth_array[] = 1
+                self.3d_sparse_truth_array[] = 1
+                self.3d_sparse_truth_array[] = 1
+                self.3d_sparse_truth_array[] = 1
+                self.3d_sparse_truth_array[] = 1
+                self.3d_sparse_truth_array[] = 1
+            except IndexError:
+                pass
+            
+            
 
-
-
+            
 def load_world(path_to_file):
     #script_dir = path.dirname("/Users/ryanlambert/minecraft-server-new/world/region/")
     #world = load_world('/Users/ryanlambert/minecraft-server-new/world')
