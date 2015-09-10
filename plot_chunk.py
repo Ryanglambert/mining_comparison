@@ -21,10 +21,11 @@ def convert_block_id_array_to_scatter_color_array(block_array):
     for block_index in xrange(len(block_array)):
         block_array[block_index] = convert_block_id_to_scatter_color(block_array[block_index])
 
-#block_array
-def plot_blocks(block_array_to_plot):
+def get_subset_of_type(unfiltered_block_array, block_type):
+    return [i for i in unfiltered_block_array if i[0] == block_type]
+
+def plot_blocks_of_type(block_array_to_plot):
     assert type(block_array_to_plot) == list
-    ## need to add how to decide which type to plot
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
@@ -42,13 +43,18 @@ def plot_blocks(block_array_to_plot):
     
     plt.show()
 
-blocks = [
-        ['stone', 0, 8, 2], 
-        ['bedrock', 10, 3, 20], 
-        ['diamond', 31, 39, 21]
-        ]
+def main():
+    blocks = [
+            ['stone', 0, 8, 2], 
+            ['bedrock', 10, 3, 20], 
+            ['diamond', 31, 39, 21],
+            ['diamond', 3, 39, 21],
+            ['diamond', 31, 9, 21],
+            ]
+    subset = get_subset_of_type(blocks, 'diamond')
+    print subset
+    
+    #plot_blocks_of_type(blocks)
 
-#convert_block_id_array_to_scatter_color_array(chunk_blocks)
-plot_blocks(blocks)
-
-
+if __name__ == "__main__":
+    main()
