@@ -47,11 +47,14 @@ def plot_blocks(block_array_to_plot):
     ax = fig.add_subplot(111, projection='3d')
 
     for key in plot_dict.keys():
-        array_subset = get_subset_of_type(block_array_to_plot,key)
-        xs = [i[1] for i in array_subset]
-        zs = [j[2] for j in array_subset]
-        ys = [k[3] for k in array_subset]
-        ax.scatter(xs, zs, ys, color=plot_dict[key][0], marker=plot_dict[key][1])
+        try:
+            array_subset = get_subset_of_type(block_array_to_plot,key)
+            xs = [i[1] for i in array_subset]
+            zs = [j[2] for j in array_subset]
+            ys = [k[3] for k in array_subset]
+            ax.scatter(xs, zs, ys, color=plot_dict[key][0], marker=plot_dict[key][1])
+        except KeyError:
+            continue
     
     ax.set_xlabel('X Label')
     ax.set_ylabel('Z Label')
