@@ -74,7 +74,7 @@ def main():
     z = i // (x_length * y_length)
     """
     bl = 253
-    blocks[bl] = ['diamond',(bl % 16), (bl // 16) % 16, (bl // 256)]
+    blocks[bl] = ['diamonds',(bl % 16), (bl // 16) % 16, (bl // 256)]
 
     #blocks = [
             #['stone', 0, 8, 2], 

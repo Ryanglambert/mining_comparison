@@ -1,6 +1,7 @@
 from os import path
 import nbt 
 import math
+import plot_chunk
 
 global x_chunk_section_size
 global y_chunk_section_size
@@ -107,6 +108,7 @@ def main():
     array = world.get_nbt(0,0)['Level']['Sections'][0]['Blocks']
     #array = [1,1,1,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7]
     print convert_1darray_to_3d_positions(array)
+    plot_chunk.plot_blocks(convert_1darray_to_3d_positions(array))
     
 
 if __name__ == "__main__":
