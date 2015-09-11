@@ -41,7 +41,7 @@ block_id_dict = {
         129:'emerald',
         }
 
-#class mining_path:
+#class MinePathLayout:
     #def __init__(self, mining_path_3d_array):
         #self.mining_path_3d_array = mining_path_3d_array
         #self.mining_adjacency_1d_array = []
@@ -66,46 +66,68 @@ block_id_dict = {
             #except IndexError:
                 #pass
     #pass
-class block_layout:
-    def __init__(self, chunks):
-        pass
-    pass
+
+class BlockLayout:
+    def __init__(self, blocks):
+        self.blocks = blocks
             
 def load_world(path_to_file):
-    #script_dir = path.dirname("/Users/ryanlambert/minecraft-server-new/world/region/")
     return nbt.world.WorldFolder(path_to_file)
 
-def get_chunk_section(world,x_chunk_coordinate, z_chunk_coordinate):
-    pass
+def get_subset_of_type(unfiltered_block_array, block_type):
+    subset_dict = {}
+    for key in unfiltered_block_array:
+        if unfiltered_block_array[key] == block_type:
+            subset_dict[key] = block_type
+    return subset_dict
 
-#def convert_data_values_to_titles(1dchunk_array):
-    #pass
-
-def convert_1darray_to_3d_positions(chunk_section_array):
+def convert_1darray_to_3d_positions(chunk_section_array, x_offset, z_offset, y_offset):
     """
     takes 1d array of block id's and returns list of lists containing 4 values each
     [block-id string, x, z, y]
-
-    x = math.floor(i % x_length)
-    z = (i // x_length) % z_length
-    y = i // (x_length * z_length)
     """
-    converted_array = []
-    for block_index in xrange(len(chunk_section_array)):
+    converted_array = {}
+    for block_index in range(len(chunk_section_array)):
         try:
-            converted_array.append(
-                [
-                    block_id_dict[chunk_section_array[block_index]],
-                    block_index % x_chunk_section_size,
-                    (block_index // x_chunk_section_size) % z_chunk_section_size,
-                    block_index // (x_chunk_section_size * z_chunk_section_size)
-                ])
+            converted_array[
+                    (
+                        (block_index % x_chunk_section_size) + x_offset * 16,
+                        ((block_index // x_chunk_section_size) % z_chunk_section_size) + z_offset * 16,
+                        (block_index // (x_chunk_section_size * z_chunk_section_size)) + y_offset * 16
+                    )
+                ] = block_id_dict[chunk_section_array[block_index]]
         except KeyError:
             continue
 
     return converted_array
-    #blocks[bl] = ['diamond',(bl % 16), (bl // 16) % 16, (bl // 256)]
 
+def get_set_of_chunk_sections(x1, x2, z1, z2, y1, y2, world):
+    """ takes chunk coordinates (block_coordinate // 16)
+    Returns concatenated dicitonary of block id's
+    """
+    set_of_sections = {}
+
+    for x_index in xrange(x1, x2):
+        for z_index in xrange(z1, z2):
+            for y_index in xrange(y1, y2):
+                print "x is: ", x_index
+                print "z is: ", z_index
+                print "y is: ", y_index
+                try:
+                    hold_section = convert_1darray_to_3d_positions(
+                            world.get_nbt(x_index, z_index)['Level']['Sections'][y_index]['Blocks'],
+                            x_index,
+                            z_index,
+                            y_index
+                            )
+                    print "section len is :", len(hold_section)
+                    for key in hold_section:
+                        set_of_sections[key] = hold_section[key]
+                except IndexError, ValueError:
+                    continue
+                except InconceivedChunk:
+                    continue
+    return set_of_sections
 
 def main():
 ### todo
@@ -115,8 +137,11 @@ def main():
 ### after each test I'll index to a new location and test again
 
     world = load_world('/Users/ryanlambert/minecraft-server-new/world')
-    array = world.get_nbt(0,0)['Level']['Sections'][5]['Blocks']
-    plot_chunk.plot_blocks(convert_1darray_to_3d_positions(array))
+    #array = world.get_nbt(0,0)['Level']['Sections'][0]['Blocks']
+    #plot_chunk.plot_blocks(convert_1darray_to_3d_positions(array))
+    set_of_chunks = get_set_of_chunk_sections(0,1,0,1,0,5,world)
+    #print type(set_of_chunks)
+    plot_chunk.plot_blocks(set_of_chunks)
     
 
 if __name__ == "__main__":
