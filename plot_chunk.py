@@ -67,7 +67,7 @@ def main():
                 blocks.append(['stone', x, z, y]) 
     """
     x = math.floor(i % x_length)
-    y = i // x_length
+    y = (i // x_length) % y_length
     z = i // (x_length * y_length)
     """
     bl = 253
