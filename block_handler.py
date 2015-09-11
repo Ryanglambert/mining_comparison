@@ -66,6 +66,10 @@ block_id_dict = {
             #except IndexError:
                 #pass
     #pass
+class block_layout:
+    def __init__(self, chunks):
+        pass
+    pass
             
 def load_world(path_to_file):
     #script_dir = path.dirname("/Users/ryanlambert/minecraft-server-new/world/region/")
@@ -104,10 +108,14 @@ def convert_1darray_to_3d_positions(chunk_section_array):
 
 
 def main():
+### todo
+### keep track of location in the world (nested loops to grab chunks)
+### each "test" will be on a "set" of chunk sections of the same altitude
+    ### block locations will need to be indexed by (y + section_value*16)
+### after each test I'll index to a new location and test again
+
     world = load_world('/Users/ryanlambert/minecraft-server-new/world')
-    array = world.get_nbt(0,0)['Level']['Sections'][0]['Blocks']
-    #array = [1,1,1,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7]
-    print convert_1darray_to_3d_positions(array)
+    array = world.get_nbt(0,0)['Level']['Sections'][5]['Blocks']
     plot_chunk.plot_blocks(convert_1darray_to_3d_positions(array))
     
 

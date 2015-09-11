@@ -20,8 +20,8 @@ takes list of blocks in format below and plots according to plot_dict into a 3d 
 plot_dict = {
         'diamond':('blue', 'D'),
         'gold':('yellow', 'D'),
-        'iron':('grey', 'D'),
-        'coal':('black', 'D'),
+        'iron':('white', 'D'),
+        'coal':('white', 'D'),
         'redstone':('red', 'D'),
         'stone':('white', 's'),
         'dirt':('white', 's'),
