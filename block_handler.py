@@ -5,14 +5,15 @@ import math
 global x_chunk_section_size
 global y_chunk_section_size
 global z_chunk_section_size
+global x_index_step
+global y_index_step 
+global z_index_step 
+
 x_chunk_section_size = 16
 y_chunk_section_size = 16
 z_chunk_section_size = 16
-global x_index_step
 x_index_step = 1
-global y_index_step 
 y_index_step = y_chunk_section_size
-global z_index_step 
 z_index_step = z_chunk_section_size * y_chunk_section_size
 
 block_id_dict = {
@@ -72,22 +73,40 @@ def load_world(path_to_file):
 def get_chunk_section(world,x_chunk_coordinate, z_chunk_coordinate):
     pass
 
-def convert_data_values_to_titles(1dchunk_array):
-    pass
+#def convert_data_values_to_titles(1dchunk_array):
+    #pass
 
 def convert_1darray_to_3d_positions(chunk_section_array):
     """
+    takes 1d array of block id's and returns list of lists containing 4 values each
+    [block-id string, x, z, y]
+
     x = math.floor(i % x_length)
-    y = i // x_length
-    z = i // (x_length * y_length)
+    z = (i // x_length) % z_length
+    y = i // (x_length * z_length)
     """
-    blocks[bl] = ['diamond',(bl % 16), (bl // 16) % 16, (bl // 256)]
-    pass
+    converted_array = []
+    for block_index in xrange(len(chunk_section_array)):
+        try:
+            converted_array.append(
+                [
+                    block_id_dict[chunk_section_array[block_index]],
+                    block_index % x_chunk_section_size,
+                    (block_index // x_chunk_section_size) % z_chunk_section_size,
+                    block_index // (x_chunk_section_size * z_chunk_section_size)
+                ])
+        except KeyError:
+            continue
+
+    return converted_array
+    #blocks[bl] = ['diamond',(bl % 16), (bl // 16) % 16, (bl // 256)]
 
 
 def main():
     world = load_world('/Users/ryanlambert/minecraft-server-new/world')
-    print world.get_nbt(0,0)['Level']['Sections'][0]['Blocks']
+    array = world.get_nbt(0,0)['Level']['Sections'][0]['Blocks']
+    #array = [1,1,1,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7]
+    print convert_1darray_to_3d_positions(array)
     
 
 if __name__ == "__main__":
