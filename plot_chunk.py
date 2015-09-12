@@ -13,11 +13,11 @@ block_dict = {
 """
 
 plot_dict = {
-        'diamond':('blue', 'h'),
-        'gold':('yellow', 'h'),
-        'iron':('white', 'h'),
-        'coal':('white', 'h'),
-        'redstone':('red', 'h'),
+        'diamond':('#2ECDB1', 'h'),
+        'gold':('#DEDE00', 'h'),
+        'iron':('#969696', 'h'),
+        #'coal':('#2D2D2D', 'h'),
+        #'redstone':('#FF0102', 'h'),
         #'stone':('white', '.'),
         #'dirt':('white', '.'),
         #'gravel':('white', '.'),

@@ -35,7 +35,7 @@ block_id_dict = {
         15:'iron',
         16:'coal',
         49:'obsidian',
-        57:'diamond',
+        56:'diamond',
         73:'redstone',
         74:'redstone',
         129:'emerald',
@@ -139,8 +139,22 @@ def main():
     world = load_world('/Users/ryanlambert/minecraft-server-new/world')
     #array = world.get_nbt(0,0)['Level']['Sections'][0]['Blocks']
     #plot_chunk.plot_blocks(convert_1darray_to_3d_positions(array))
-    set_of_chunks = get_set_of_chunk_sections(0,1,0,1,0,5,world)
+    set_of_chunks = get_set_of_chunk_sections(0,10,0,10,0,10,world)
     #print type(set_of_chunks)
+    diamonds = 0
+    gold = 0
+    iron = 0
+    for i in set_of_chunks.values():
+        if i == 'diamond':
+            diamonds += 1
+        elif i == 'gold':
+            gold += 1
+        elif i == 'iron':
+            iron += 1
+
+    print "num diamonds is: ", diamonds
+    print "num gold is: ", gold
+    print "num diamonds is: ", iron
     plot_chunk.plot_blocks(set_of_chunks)
     
 
