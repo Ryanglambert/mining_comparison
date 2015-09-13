@@ -1,5 +1,6 @@
 from os import path
-import nbt 
+import pdb
+import nbt
 import math
 import plot_chunk
 
@@ -41,36 +42,25 @@ block_id_dict = {
         129:'emerald',
         }
 
-#class MinePathLayout:
-    #def __init__(self, mining_path_3d_array):
-        #self.mining_path_3d_array = mining_path_3d_array
-        #self.mining_adjacency_1d_array = []
-        #self.1d_sparse_adjacency_path_array = []
-        #pass
-    
-    #def get_3d_truth_array(self):
-        #return self.3d_sparse_truth_array
-
-    #def get_1d_truth_array(self):
-        #return self.1d_sparse_truth_array
-    
-    #def set_adjacent_blocks(self):
-        #for i in self.get_1d_truth_array():
-            #try:
-                #self.3d_sparse_truth_array[] = 1
-                #self.3d_sparse_truth_array[] = 1
-                #self.3d_sparse_truth_array[] = 1
-                #self.3d_sparse_truth_array[] = 1
-                #self.3d_sparse_truth_array[] = 1
-                #self.3d_sparse_truth_array[] = 1
-            #except IndexError:
-                #pass
-    #pass
+class MinePathLayout:
+    def __init__(self, mining_path_3d_array):
+        """accepts list of tuples
+        Returns: original list of tuples plus adjacent tuples
+        """
+        self.mining_path_3d_array = mining_path_3d_array
+        self.mining_path_adjacency = []
+        for coordinate_tuple in mining_path_3d_array:
+            self.mining_path_adjacency.append((coordinate_tuple[0] + 1,coordinate_tuple[1], coordinate_tuple[2]))
+            self.mining_path_adjacency.append((coordinate_tuple[0] - 1,coordinate_tuple[1], coordinate_tuple[2]))
+            self.mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1] + 1, coordinate_tuple[2]))
+            self.mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1] - 1, coordinate_tuple[2]))
+            self.mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1], coordinate_tuple[2] + 1))
+            self.mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1], coordinate_tuple[2] - 1))
 
 class BlockLayout:
     def __init__(self, blocks):
         self.blocks = blocks
-            
+        
 def load_world(path_to_file):
     return nbt.world.WorldFolder(path_to_file)
 
@@ -83,8 +73,9 @@ def get_subset_of_type(unfiltered_block_array, block_type):
 
 def convert_1darray_to_3d_positions(chunk_section_array, x_offset, z_offset, y_offset):
     """
-    takes 1d array of block id's and returns list of lists containing 4 values each
-    [block-id string, x, z, y]
+    takes 1d array of block id's and 
+    Returns: 
+    {(x,z,y):'type'}
     """
     converted_array = {}
     for block_index in range(len(chunk_section_array)):
@@ -96,7 +87,7 @@ def convert_1darray_to_3d_positions(chunk_section_array, x_offset, z_offset, y_o
                         (block_index // (x_chunk_section_size * z_chunk_section_size)) + y_offset * 16
                     )
                 ] = block_id_dict[chunk_section_array[block_index]]
-        except KeyError:
+        except KeyError, IndexError:
             continue
 
     return converted_array
@@ -110,9 +101,9 @@ def get_set_of_chunk_sections(x1, x2, z1, z2, y1, y2, world):
     for x_index in xrange(x1, x2):
         for z_index in xrange(z1, z2):
             for y_index in xrange(y1, y2):
-                print "x is: ", x_index
-                print "z is: ", z_index
-                print "y is: ", y_index
+                #print "x is: ", x_index
+                #print "z is: ", z_index
+                #print "y is: ", y_index
                 try:
                     hold_section = convert_1darray_to_3d_positions(
                             world.get_nbt(x_index, z_index)['Level']['Sections'][y_index]['Blocks'],
@@ -123,11 +114,29 @@ def get_set_of_chunk_sections(x1, x2, z1, z2, y1, y2, world):
                     print "section len is :", len(hold_section)
                     for key in hold_section:
                         set_of_sections[key] = hold_section[key]
-                except IndexError, ValueError:
+                except IndexError:
+                    continue
+                except ValueError:
                     continue
                 except InconceivedChunk:
                     continue
     return set_of_sections
+
+def return_blocks(mining_path, block_layout):
+    assert type(mining_path) == list
+    assert type(block_layout) == dict
+    """takes a path and a set of blocks
+    Returns: all ores that are adjacent to the path, perhaps also the size of the ore?
+    """
+    returned_blocks = {}
+    for i in mining_path:
+        try:
+            returned_blocks[i] = block_layout[i]
+        except IndexError:
+            continue
+        except KeyError:
+            continue
+    return returned_blocks
 
 def main():
 ### todo
@@ -137,26 +146,19 @@ def main():
 ### after each test I'll index to a new location and test again
 
     world = load_world('/Users/ryanlambert/minecraft-server-new/world')
-    #array = world.get_nbt(0,0)['Level']['Sections'][0]['Blocks']
-    #plot_chunk.plot_blocks(convert_1darray_to_3d_positions(array))
-    set_of_chunks = get_set_of_chunk_sections(0,10,0,10,0,10,world)
-    #print type(set_of_chunks)
-    diamonds = 0
-    gold = 0
-    iron = 0
-    for i in set_of_chunks.values():
-        if i == 'diamond':
-            diamonds += 1
-        elif i == 'gold':
-            gold += 1
-        elif i == 'iron':
-            iron += 1
+    set_of_chunks = get_set_of_chunk_sections(0,2,0,2,0,2,world)
 
-    print "num diamonds is: ", diamonds
-    print "num gold is: ", gold
-    print "num diamonds is: ", iron
-    plot_chunk.plot_blocks(set_of_chunks)
-    
+    mine_path = MinePathLayout([(5, i, 5) for i in xrange(1,33)])
+    #mine_path = MinePathLayout([
+        #(5,1,5),
+        #(5,2,5),
+        #(5,3,5),
+        #(5,4,5),
+        #(5,5,5),
+        #])
+
+    adjacent_blocks = return_blocks(mine_path.mining_path_adjacency, set_of_chunks)
+    plot_chunk.plot_blocks(adjacent_blocks)
 
 if __name__ == "__main__":
     main()
