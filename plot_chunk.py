@@ -1,4 +1,3 @@
-import pdb
 import math
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
@@ -16,12 +15,12 @@ plot_dict = {
         'diamond':('#2ECDB1', 'h'),
         'gold':('#DEDE00', 'h'),
         'iron':('#969696', 'h'),
-        #'coal':('#2D2D2D', 'h'),
-        #'redstone':('#FF0102', 'h'),
-        #'stone':('white', '.'),
-        #'dirt':('white', '.'),
-        #'gravel':('white', '.'),
-        #'bedrock':('white', '.'),
+        'coal':('#2D2D2D', 'h'),
+        'redstone':('#FF0102', 'h'),
+        'stone':('white', '.'),
+        'dirt':('white', '.'),
+        'gravel':('white', '.'),
+        'bedrock':('white', '.'),
         }
 
 
@@ -43,6 +42,8 @@ def plot_blocks(block_array_to_plot):
     ax.set_xlabel('X Label')
     ax.set_ylabel('Z Label')
     ax.set_zlabel('Y Label')
+    plt.xlim(0, 32)
+    plt.ylim(0, 32)
     
     plt.show()
 
