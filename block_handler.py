@@ -204,7 +204,7 @@ def main():
             'diamond':0,
             'redstone':0,
             'coal':0,
-            'iron':0
+            'gold':0
             }
     for ore in ore_count.keys():
         ore_count[ore] += len(return_blocks(get_adjacency(path), set_of_chunks, [ore]))
