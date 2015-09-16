@@ -35,6 +35,7 @@ block_id_dict = {
         14:'gold',
         15:'iron',
         16:'coal',
+        21:'lapis',
         49:'obsidian',
         56:'diamond',
         73:'redstone',
@@ -42,34 +43,8 @@ block_id_dict = {
         129:'emerald',
         }
 
-class MinePathLayout:
-    def __init__(self, mining_path_3d_array):
-        """accepts list of tuples
-        Returns: original list of tuples plus adjacent tuples
-        """
-        self.mining_path_3d_array = mining_path_3d_array
-        self.mining_path_adjacency = []
-        for coordinate_tuple in mining_path_3d_array:
-            self.mining_path_adjacency.append((coordinate_tuple[0] + 1,coordinate_tuple[1], coordinate_tuple[2]))
-            self.mining_path_adjacency.append((coordinate_tuple[0] - 1,coordinate_tuple[1], coordinate_tuple[2]))
-            self.mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1] + 1, coordinate_tuple[2]))
-            self.mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1] - 1, coordinate_tuple[2]))
-            self.mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1], coordinate_tuple[2] + 1))
-            self.mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1], coordinate_tuple[2] - 1))
-
-class BlockLayout:
-    def __init__(self, blocks):
-        self.blocks = blocks
-        
 def load_world(path_to_file):
     return nbt.world.WorldFolder(path_to_file)
-
-def get_subset_of_type(unfiltered_block_array, block_type):
-    subset_dict = {}
-    for key in unfiltered_block_array:
-        if unfiltered_block_array[key] == block_type:
-            subset_dict[key] = block_type
-    return subset_dict
 
 def convert_1darray_to_3d_positions(chunk_section_array, x_offset, z_offset, y_offset):
     """
@@ -122,22 +97,86 @@ def get_set_of_chunk_sections(x1, x2, z1, z2, y1, y2, world):
                     continue
     return set_of_sections
 
-def return_blocks(mining_path, block_layout):
+def get_adjacency(mining_path_3d_array):
+    """accepts list of tuples
+    Returns: original list of tuples plus adjacent tuples
+    """
+    mining_path_adjacency = []
+    for coordinate_tuple in mining_path_3d_array:
+        mining_path_adjacency.append((coordinate_tuple[0] + 1,coordinate_tuple[1], coordinate_tuple[2]))
+        mining_path_adjacency.append((coordinate_tuple[0] - 1,coordinate_tuple[1], coordinate_tuple[2]))
+        mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1] + 1, coordinate_tuple[2]))
+        mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1] - 1, coordinate_tuple[2]))
+        mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1], coordinate_tuple[2] + 1)) 
+        mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1], coordinate_tuple[2] - 1))
+    return mining_path_adjacency
+
+def return_contiguous_ores(ores, block_layout):
+    assert type(ores) == dict
+    assert type(block_layout) == dict
+    ores_to_return = ores
+    for ore in ores.keys():
+        try:
+            if block_layout[ore] == block_layout[ore[0],ore[1] + 1,ore[2]] and (ore[0], ore[1] + 1, ore[2]) not in ores_to_return.keys():
+                ores_to_return[ore[0],ore[1] + 1, ore[2]] = block_layout[ore[0],ore[1] + 1, ore[2]]
+            if block_layout[ore] == block_layout[ore[0],ore[1] - 1 ,ore[2]] and (ore[0], ore[1] - 1, ore[2]) not in ores_to_return.keys():
+                ores_to_return[ore[0],ore[1] - 1, ore[2]] = block_layout[ore[0],ore[1] - 1, ore[2]]
+            if block_layout[ore] == block_layout[ore[0] + 1,ore[1] ,ore[2]] and (ore[0] + 1, ore[1], ore[2]) not in ores_to_return.keys():
+                ores_to_return[ore[0] + 1,ore[1], ore[2]] = block_layout[ore[0] + 1,ore[1], ore[2]]
+            if block_layout[ore] == block_layout[ore[0] - 1,ore[1] ,ore[2]] and (ore[0] - 1, ore[1], ore[2]) not in ores_to_return.keys():
+                ores_to_return[ore[0] - 1,ore[1], ore[2]] = block_layout[ore[0] - 1,ore[1], ore[2]]
+            if block_layout[ore] == block_layout[ore[0],ore[1],ore[2] + 1] and (ore[0], ore[1], ore[2] + 1) not in ores_to_return.keys():
+                ores_to_return[ore[0],ore[1], ore[2] + 1] = block_layout[ore[0],ore[1], ore[2] + 1]
+            if block_layout[ore] == block_layout[ore[0],ore[1],ore[2] - 1] and (ore[0], ore[1], ore[2] -1) not in ores_to_return.keys():
+                ores_to_return[ore[0],ore[1], ore[2] - 1] = block_layout[ore[0],ore[1], ore[2] - 1]
+        except KeyError:
+            continue
+    return ores_to_return
+
+def get_subset_of_type(unfiltered_block_array, block_types):
+    subset_dict = {}
+    for key in unfiltered_block_array.keys():
+        for block_type in block_types:
+            if unfiltered_block_array[key] == block_type:
+                subset_dict[key] = block_type
+    return subset_dict
+
+def return_all_contiguous_ores(returned_ores, block_layout):
+    prev_returned_ores_len = len(returned_ores.keys())
+    while True:
+        print "still running"
+        returned_ores = return_contiguous_ores(returned_ores, block_layout)
+        if len(returned_ores.keys()) <= prev_returned_ores_len:
+            break
+        prev_returned_ores_len = len(returned_ores.keys())
+    return returned_ores
+
+def return_blocks(mining_path, block_layout, block_filter_list):
     assert type(mining_path) == list
     assert type(block_layout) == dict
     """takes a path and a set of blocks
     Returns: all ores that are adjacent to the path, perhaps also the size of the ore?
     """
-    returned_blocks = {}
+    path_blocks = {}
+    filtered_block_layout = get_subset_of_type(block_layout, block_filter_list)
     for i in mining_path:
         try:
-            returned_blocks[i] = block_layout[i]
+            path_blocks[i] = filtered_block_layout[i]
         except IndexError:
             continue
         except KeyError:
             continue
-    return returned_blocks
+    hold_path_blocks = path_blocks.copy()
+    path_blocks.update(return_all_contiguous_ores(hold_path_blocks, filtered_block_layout))
+    return path_blocks
 
+def simulate_mine_path(path, ores_of_interest, set_of_chunks):
+    assert type(path) == list
+    assert type(ores_of_interest) == list
+    assert type(set_of_chunks) == dict
+    discovered_ores = {}
+    pass
+    
 def main():
 ### todo
 ### keep track of location in the world (nested loops to grab chunks)
@@ -145,20 +184,49 @@ def main():
     ### block locations will need to be indexed by (y + section_value*16)
 ### after each test I'll index to a new location and test again
 
+    x_start = 32
+    x_finish = 64
+    z_start = 0
+    z_finish = 32
+    y_start = 0
+    y_finish = 32
     world = load_world('/Users/ryanlambert/minecraft-server-new/world')
-    set_of_chunks = get_set_of_chunk_sections(0,2,0,2,0,2,world)
+    set_of_chunks = get_set_of_chunk_sections(2,4,0,2,0,2,world)
 
-    mine_path = MinePathLayout([(5, i, 5) for i in xrange(1,33)])
-    #mine_path = MinePathLayout([
-        #(5,1,5),
-        #(5,2,5),
-        #(5,3,5),
-        #(5,4,5),
-        #(5,5,5),
-        #])
+    path = []
+    for x in xrange(2+(16*2), 33+(16*2), 4):
+        for z in xrange(33):
+            for y in range(5,8):
+                path.append((x,z,y))
 
-    adjacent_blocks = return_blocks(mine_path.mining_path_adjacency, set_of_chunks)
-    plot_chunk.plot_blocks(adjacent_blocks)
+    ore_count = {
+            'iron':0,
+            'diamond':0,
+            'redstone':0,
+            'coal':0,
+            'gold':0
+            }
+    for ore in ore_count.keys():
+        ore_count[ore] += len(return_blocks(get_adjacency(path), set_of_chunks, [ore]))
+
+    print ore_count
+
+### visual confirmation of ores
+    #iron = return_blocks(get_adjacency(path), set_of_chunks, ['iron'])
+    #diamond = return_blocks(get_adjacency(path), set_of_chunks, ['diamonds'])
+    #gold = return_blocks(get_adjacency(path), set_of_chunks, ['gold'])
+    #redstone = return_blocks(get_adjacency(path), set_of_chunks, ['redstone'])
+    #coal = return_blocks(get_adjacency(path), set_of_chunks, ['coal'])
+    #discovered_ores = {}
+    #discovered_ores.update(iron)
+    #discovered_ores.update(diamond)
+    #discovered_ores.update(gold)
+    #discovered_ores.update(redstone)
+    #discovered_ores.update(coal)
+
+### visual confirmation of path
+    #plot_chunk.plot_blocks(blocks_to_plot=discovered_ores, path_plot=path, xstart=32, xlim=64, zstart=0, zlim=32, ystart=0, ylim=32)
+    plot_chunk.plot_blocks(path_plot=path, xstart=32, xlim=64, zstart=0, zlim=32, ystart=0, ylim=32)
 
 if __name__ == "__main__":
     main()

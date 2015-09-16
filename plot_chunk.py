@@ -2,7 +2,6 @@ import math
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-import block_handler
 
 """
 takes dict of blocks in format below and plots according to plot_dict into a 3d scatter plot
@@ -12,38 +11,65 @@ block_dict = {
 """
 
 plot_dict = {
-        'diamond':('#2ECDB1', 'h'),
-        'gold':('#DEDE00', 'h'),
-        'iron':('#969696', 'h'),
-        'coal':('#2D2D2D', 'h'),
-        'redstone':('#FF0102', 'h'),
-        'stone':('white', '.'),
-        'dirt':('white', '.'),
-        'gravel':('white', '.'),
-        'bedrock':('white', '.'),
+        'diamond':('#2ECDB1', 's'),
+        'gold':('#DEDE00', 's'),
+        'iron':('#969696', 's'),
+        'coal':('#2D2D2D', 's'),
+        'redstone':('#FF0102', 's'),
+        'lava':('green', '.'),
+        'water':('green', '.'),
+        'obsidian':('green', '.'),
+        'stone':('green', '.'),
+        'dirt':('green', '.'),
+        'gravel':('green', '.'),
+        'bedrock':('green', '.'),
         }
 
+def get_subset_of_type(unfiltered_block_array, block_type):
+    subset_dict = {}
+    for key in unfiltered_block_array:
+        if unfiltered_block_array[key] == block_type:
+            subset_dict[key] = block_type
+    return subset_dict
 
-def plot_blocks(block_array_to_plot):
-    assert type(block_array_to_plot) == dict
+def plot_blocks(blocks_to_plot=None, path_plot=None, xstart=0, xlim=32, zstart=0, zlim=32, ystart=0, ylim=32):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    for key in plot_dict.keys():
+    if blocks_to_plot != None:
+        for key in plot_dict.keys():
+            try:
+                array_subset = get_subset_of_type(blocks_to_plot, key)
+                xs = [i[0] for i in array_subset.keys()]
+                zs = [j[1] for j in array_subset.keys()]
+                ys = [k[2] for k in array_subset.keys()]
+                ax.scatter(xs, zs, ys, color=plot_dict[key][0], marker=plot_dict[key][1])
+                ax.set_zlim3d([ystart - 5,ylim + 5])
+                ax.set_xlim3d([xstart - 5,xlim + 5])
+                ax.set_ylim3d([zstart - 5,zlim + 5]) ### <<< intentional
+                ax.set_xlabel('X Label')
+                ax.set_ylabel('Z Label')
+                ax.set_zlabel('Y Label')
+            except KeyError:
+                continue
+
+    if path_plot != None:
         try:
-            array_subset = block_handler.get_subset_of_type(block_array_to_plot, key)
-            xs = [i[0] for i in array_subset.keys()]
-            zs = [j[1] for j in array_subset.keys()]
-            ys = [k[2] for k in array_subset.keys()]
-            ax.scatter(xs, zs, ys, color=plot_dict[key][0], marker=plot_dict[key][1])
+            xs = [i[0] for i in path_plot]
+            zs = [j[1] for j in path_plot]
+            ys = [k[2] for k in path_plot]
+            ax.scatter(xs, zs, ys, color='green', marker='|')
+            ax.set_zlim3d([ystart - 5,ylim + 5])
+            ax.set_xlim3d([xstart - 5,xlim + 5])
+            ax.set_ylim3d([zstart - 5,zlim + 5]) ### <<< intentional
+            ax.set_xlabel('X Label')
+            ax.set_ylabel('Z Label')
+            ax.set_zlabel('Y Label')
         except KeyError:
-            continue
-    
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Z Label')
-    ax.set_zlabel('Y Label')
-    plt.xlim(0, 32)
-    plt.ylim(0, 32)
+            pass
+
+    plt.xlim(xstart - 5, xlim + 5)
+    plt.ylim(ystart - 5, zlim + 5)
     
     plt.show()
 
