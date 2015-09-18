@@ -86,7 +86,7 @@ def get_set_of_chunk_sections(x1, x2, z1, z2, y1, y2, world):
                             z_index,
                             y_index
                             )
-                    print "section len is :", len(hold_section)
+                    #print "section len is :", len(hold_section)
                     for key in hold_section:
                         set_of_sections[key] = hold_section[key]
                 except IndexError:
@@ -144,7 +144,7 @@ def get_subset_of_type(unfiltered_block_array, block_types):
 def return_all_contiguous_ores(returned_ores, block_layout):
     prev_returned_ores_len = len(returned_ores.keys())
     while True:
-        print "still running"
+        #print "still running"
         returned_ores = return_contiguous_ores(returned_ores, block_layout)
         if len(returned_ores.keys()) <= prev_returned_ores_len:
             break
@@ -152,14 +152,16 @@ def return_all_contiguous_ores(returned_ores, block_layout):
     return returned_ores
 
 def return_blocks(mining_path, block_layout, block_filter_list):
+    assert type(block_filter_list) == list
     assert type(mining_path) == list
     assert type(block_layout) == dict
-    """takes a path and a set of blocks
-    Returns: all ores that are adjacent to the path, perhaps also the size of the ore?
+    """takes a path, block layout, and filter list
+    Returns: all ores that are adjacent to the path, and in the filter list
     """
     path_blocks = {}
     filtered_block_layout = get_subset_of_type(block_layout, block_filter_list)
-    for i in mining_path:
+    mining_path_with_adjacency = get_adjacency(mining_path)
+    for i in mining_path_with_adjacency:
         try:
             path_blocks[i] = filtered_block_layout[i]
         except IndexError:
@@ -170,35 +172,41 @@ def return_blocks(mining_path, block_layout, block_filter_list):
     path_blocks.update(return_all_contiguous_ores(hold_path_blocks, filtered_block_layout))
     return path_blocks
 
-def simulate_mine_path(path, ores_of_interest, set_of_chunks):
-    assert type(path) == list
-    assert type(ores_of_interest) == list
-    assert type(set_of_chunks) == dict
-    discovered_ores = {}
-    pass
-    
+def get_path_blocks_with_coordinates(world, path, ore_count_dict, x_start, x_end, z_start, z_end, y_start, y_end):
+    """ Takes: world, path, ore filter, coordinates
+        Returns: path_blocks
+    """
+    try:
+        set_of_chunks = get_set_of_chunk_sections(
+                x1=x_start,
+                x2=x_end,
+                z1=z_start,
+                z2=z_end,
+                y1=y_start,
+                y2=y_end,
+                world=world)
+    except InconceivedChunk:
+        pass
+    path_with_offset = []
+    for n_tuple in range(len(path)):
+        path_with_offset.append(
+                (path[n_tuple][0] + x_start*16, path[n_tuple][1] + z_start*16, path[n_tuple][2] + y_start*16)
+                )
+
+    return return_blocks(path_with_offset, set_of_chunks, ore_count_dict.keys())
+
+"""
+    this code needs it's own function
+
+    num_blocks_mined = 0
+    for ore in ore_count_dict.keys():
+        ore_count_dict[ore] += len(return_blocks(path, set_of_chunks, [ore]))
+    num_blocks_mined += sum(ore_count_dict.values()) + len(path)
+    return num_blocks_mined, ore_count_dict
+"""
+
 def main():
-### todo
-### keep track of location in the world (nested loops to grab chunks)
-### each "test" will be on a "set" of chunk sections of the same altitude
-    ### block locations will need to be indexed by (y + section_value*16)
-### after each test I'll index to a new location and test again
-
-    x_start = 32
-    x_finish = 64
-    z_start = 0
-    z_finish = 32
-    y_start = 0
-    y_finish = 32
-    world = load_world('/Users/ryanlambert/minecraft-server-new/world')
-    set_of_chunks = get_set_of_chunk_sections(2,4,0,2,0,2,world)
-
-    path = []
-    for x in xrange(2+(16*2), 33+(16*2), 4):
-        for z in xrange(33):
-            for y in range(5,8):
-                path.append((x,z,y))
-
+### data
     ore_count = {
             'iron':0,
             'diamond':0,
@@ -206,27 +214,32 @@ def main():
             'coal':0,
             'gold':0
             }
-    for ore in ore_count.keys():
-        ore_count[ore] += len(return_blocks(get_adjacency(path), set_of_chunks, [ore]))
 
-    print ore_count
+### path information
+    path = []
+    for x in xrange(2, 33, 4):
+        for z in xrange(33):
+            for y in range(5,8):
+                path.append((x,z,y))
 
-### visual confirmation of ores
-    #iron = return_blocks(get_adjacency(path), set_of_chunks, ['iron'])
-    #diamond = return_blocks(get_adjacency(path), set_of_chunks, ['diamonds'])
-    #gold = return_blocks(get_adjacency(path), set_of_chunks, ['gold'])
-    #redstone = return_blocks(get_adjacency(path), set_of_chunks, ['redstone'])
-    #coal = return_blocks(get_adjacency(path), set_of_chunks, ['coal'])
-    #discovered_ores = {}
-    #discovered_ores.update(iron)
-    #discovered_ores.update(diamond)
-    #discovered_ores.update(gold)
-    #discovered_ores.update(redstone)
-    #discovered_ores.update(coal)
+### simulate one set and tally ores
+    world = load_world('/Users/ryanlambert/minecraft-server-new/world')
 
-### visual confirmation of path
-    #plot_chunk.plot_blocks(blocks_to_plot=discovered_ores, path_plot=path, xstart=32, xlim=64, zstart=0, zlim=32, ystart=0, ylim=32)
-    plot_chunk.plot_blocks(path_plot=path, xstart=32, xlim=64, zstart=0, zlim=32, ystart=0, ylim=32)
+
+## visual confirmation of ores
+    plot_chunk.plot_blocks(
+       path_plot=path, 
+       blocks_to_plot=get_path_blocks_with_coordinates(
+           world,
+           path,
+           ore_count,
+           x_start=1,
+           x_end=3,
+           z_start=0,
+           z_end=2,
+           y_start=0,
+           y_end=2)
+       )
 
 if __name__ == "__main__":
     main()
