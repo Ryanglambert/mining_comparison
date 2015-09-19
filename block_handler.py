@@ -114,6 +114,12 @@ def get_adjacency(mining_path_3d_array):
 def return_contiguous_ores(ores, block_layout):
     assert type(ores) == dict
     assert type(block_layout) == dict
+    ores_to_ignore = [
+            'stone',
+            'water',
+            'dirt',
+            'gravel'
+            ]
     ores_to_return = ores
     for ore in ores.keys():
         try:
@@ -192,18 +198,18 @@ def get_path_blocks_with_coordinates(world, path, ore_count_dict, x_start, x_end
         path_with_offset.append(
                 (path[n_tuple][0] + x_start*16, path[n_tuple][1] + z_start*16, path[n_tuple][2] + y_start*16)
                 )
-
+### troubleshooting
+    txs = []
+    tzs = []
+    tys = []
+    for i in path_with_offset:
+        txs.append(i[0])
+        tzs.append(i[1])
+        tys.append(i[2])
+    print txs ,tzs ,tys
+    print max(txs), min(txs), max(tys), min(tys), max(tzs), min(tzs)
+###
     return return_blocks(path_with_offset, set_of_chunks, ore_count_dict.keys())
-
-"""
-    this code needs it's own function
-
-    num_blocks_mined = 0
-    for ore in ore_count_dict.keys():
-        ore_count_dict[ore] += len(return_blocks(path, set_of_chunks, [ore]))
-    num_blocks_mined += sum(ore_count_dict.values()) + len(path)
-    return num_blocks_mined, ore_count_dict
-"""
 
 def main():
 ### data
@@ -212,15 +218,23 @@ def main():
             'diamond':0,
             'redstone':0,
             'coal':0,
+            #'stone':0,
             'gold':0
             }
 
 ### path information
-    path = []
-    for x in xrange(2, 33, 4):
-        for z in xrange(33):
-            for y in range(5,8):
-                path.append((x,z,y))
+    relative_path = []
+    for x in xrange(6, 42, 12):
+        for z in xrange(2, 48):
+            for y in range(5,7):
+                relative_path.append((x,z,y))
+        for z in xrange(3, 48, 4):
+            for x_2 in xrange(x, x + 5):
+                for y in range(6,7):
+                    relative_path.append((x_2,z,y))
+            for x_3 in xrange(x - 5, x):
+                for y in range(6,7):
+                    relative_path.append((x_3,z,y))
 
 ### simulate one set and tally ores
     world = load_world('/Users/ryanlambert/minecraft-server-new/world')
@@ -228,15 +242,15 @@ def main():
 
 ## visual confirmation of ores
     plot_chunk.plot_blocks(
-       path_plot=path, 
+       path_plot=relative_path, 
        blocks_to_plot=get_path_blocks_with_coordinates(
            world,
-           path,
+           relative_path,
            ore_count,
-           x_start=1,
-           x_end=3,
+           x_start=5,
+           x_end=8,
            z_start=0,
-           z_end=2,
+           z_end=3,
            y_start=0,
            y_end=2)
        )

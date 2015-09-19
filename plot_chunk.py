@@ -16,13 +16,13 @@ plot_dict = {
         'iron':('#969696', 's'),
         'coal':('#2D2D2D', 's'),
         'redstone':('#FF0102', 's'),
-        'lava':('green', '.'),
-        'water':('green', '.'),
-        'obsidian':('green', '.'),
-        'stone':('green', '.'),
-        'dirt':('green', '.'),
-        'gravel':('green', '.'),
-        'bedrock':('green', '.'),
+        #'lava':('green', '.'),
+        #'water':('green', '.'),
+        #'obsidian':('green', '.'),
+        #'stone':('green', '.'),
+        #'dirt':('green', '.'),
+        #'gravel':('green', '.'),
+        #'bedrock':('green', '.'),
         }
 
 def get_subset_of_type(unfiltered_block_array, block_type):
@@ -44,13 +44,14 @@ def plot_blocks(blocks_to_plot, path_plot):
                 xs = [i[0] for i in array_subset.keys()]
                 zs = [j[1] for j in array_subset.keys()]
                 ys = [k[2] for k in array_subset.keys()]
-                ax.scatter(xs, zs, ys, color=plot_dict[key][0], marker=plot_dict[key][1])
-                ax.set_zlim3d([0, 32])
+                ax.scatter(xs, zs, ys, color=plot_dict[key][0], marker=plot_dict[key][1], label=key)
+                ax.set_zlim3d([0, 16])
                 #ax.set_xlim3d([xstart - 5,xlim + 5])
                 #ax.set_ylim3d([zstart - 5,zlim + 5]) ### <<< intentional
                 ax.set_xlabel('X Label')
                 ax.set_ylabel('Z Label')
                 ax.set_zlabel('Y Label')
+                ax.legend()
             except KeyError:
                 continue
 
@@ -60,7 +61,7 @@ def plot_blocks(blocks_to_plot, path_plot):
             #zs = [j[1] for j in path_plot]
             #ys = [k[2] for k in path_plot]
             #ax.scatter(xs, zs, ys, color='green', marker='|')
-            #ax.set_zlim3d([0, 32])
+            #ax.set_zlim3d([0, 16])
             ##ax.set_xlim3d([xstart - 5,xlim + 5])
             ##ax.set_ylim3d([zstart - 5,zlim + 5]) ### <<< intentional
             #ax.set_xlabel('X Label')
