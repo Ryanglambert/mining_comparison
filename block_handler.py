@@ -1,7 +1,10 @@
 from os import path
 import pdb
+import pandas as pd
 import nbt
 import math
+import copy
+
 import plot_chunk
 
 global x_chunk_section_size
@@ -114,12 +117,6 @@ def get_adjacency(mining_path_3d_array):
 def return_contiguous_ores(ores, block_layout):
     assert type(ores) == dict
     assert type(block_layout) == dict
-    ores_to_ignore = [
-            'stone',
-            'water',
-            'dirt',
-            'gravel'
-            ]
     ores_to_return = ores
     for ore in ores.keys():
         try:
@@ -174,7 +171,7 @@ def return_blocks(mining_path, block_layout, block_filter_list):
             continue
         except KeyError:
             continue
-    hold_path_blocks = path_blocks.copy()
+    hold_path_blocks = copy.deepcopy(path_blocks)
     path_blocks.update(return_all_contiguous_ores(hold_path_blocks, filtered_block_layout))
     return path_blocks
 
@@ -206,8 +203,6 @@ def get_path_blocks_with_coordinates(world, path, ore_count_dict, x_start, x_end
         txs.append(i[0])
         tzs.append(i[1])
         tys.append(i[2])
-    print txs ,tzs ,tys
-    print max(txs), min(txs), max(tys), min(tys), max(tzs), min(tzs)
 ###
     return return_blocks(path_with_offset, set_of_chunks, ore_count_dict.keys())
 
@@ -237,23 +232,54 @@ def main():
                     relative_path.append((x_3,z,y))
 
 ### simulate one set and tally ores
-    world = load_world('/Users/ryanlambert/minecraft-server-new/world')
+    world = load_world('/Users/ryanlambert/minecraft-server/world')
 
 
 ## visual confirmation of ores
-    plot_chunk.plot_blocks(
-       path_plot=relative_path, 
-       blocks_to_plot=get_path_blocks_with_coordinates(
-           world,
-           relative_path,
-           ore_count,
-           x_start=5,
-           x_end=8,
-           z_start=0,
-           z_end=3,
-           y_start=0,
-           y_end=2)
-       )
+    def simulation_noplot():
+        blocks_found = {}
+        total_ores = copy.deepcopy(ore_count)
+        for z in range(-10, 11, 3):
+            for x in range(-10, 11,3):
+                blocks_found.update(get_path_blocks_with_coordinates(
+                        world,
+                        relative_path,
+                        ore_count,
+                        x_start=x,
+                        x_end=x + 3,
+                        z_start=z,
+                        z_end=z + 3,
+                        y_start=0,
+                        y_end=2)
+                        )
+                for blocktype in blocks_found.values():
+                    ore_count[blocktype] += 1
+        print "ore totals: ", ore_count
+        print "blocks mined: ", sum(ore_count.values()) + len(relative_path)
+        diamond_count = 0
+        for ore in blocks_found.values():
+            if ore == 'diamond':
+                diamond_count += 1
+        print "diamond count is: ", diamond_count
+
+    def simulation_plot():
+        plot_chunk.plot_blocks(
+           path_plot=relative_path, 
+           #path_plot=None, 
+           blocks_to_plot=get_path_blocks_with_coordinates(
+               world,
+               relative_path,
+               ore_count,
+               x_start=0,
+               x_end=3,
+               z_start=0,
+               z_end=3,
+               y_start=0,
+               y_end=2)
+           )
+
+    #simulation_noplot()
+    simulation_plot()
 
 if __name__ == "__main__":
     main()

@@ -55,20 +55,20 @@ def plot_blocks(blocks_to_plot, path_plot):
             except KeyError:
                 continue
 
-    #if path_plot != None:
-        #try:
-            #xs = [i[0] for i in path_plot]
-            #zs = [j[1] for j in path_plot]
-            #ys = [k[2] for k in path_plot]
-            #ax.scatter(xs, zs, ys, color='green', marker='|')
-            #ax.set_zlim3d([0, 16])
-            ##ax.set_xlim3d([xstart - 5,xlim + 5])
-            ##ax.set_ylim3d([zstart - 5,zlim + 5]) ### <<< intentional
-            #ax.set_xlabel('X Label')
-            #ax.set_ylabel('Z Label')
-            #ax.set_zlabel('Y Label')
-        #except KeyError:
-            #pass
+    if path_plot != None:
+        try:
+            xs = [i[0] for i in path_plot]
+            zs = [j[1] for j in path_plot]
+            ys = [k[2] for k in path_plot]
+            ax.scatter(xs, zs, ys, color='green', marker='|')
+            ax.set_zlim3d([0, 16])
+            #ax.set_xlim3d([xstart - 5,xlim + 5])
+            #ax.set_ylim3d([zstart - 5,zlim + 5]) ### <<< intentional
+            ax.set_xlabel('X Label')
+            ax.set_ylabel('Z Label')
+            ax.set_zlabel('Y Label')
+        except KeyError:
+            pass
 
     
     plt.show()
