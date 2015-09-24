@@ -61,7 +61,7 @@ def plot_blocks(blocks_to_plot, path_plot):
             zs = [j[1] for j in path_plot]
             ys = [k[2] for k in path_plot]
             ax.scatter(xs, zs, ys, color='green', marker='|')
-            ax.set_zlim3d([0, 16])
+            ax.set_zlim3d([0, 32])
             #ax.set_xlim3d([xstart - 5,xlim + 5])
             #ax.set_ylim3d([zstart - 5,zlim + 5]) ### <<< intentional
             ax.set_xlabel('X Label')

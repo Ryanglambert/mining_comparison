@@ -175,6 +175,15 @@ def return_blocks(mining_path, block_layout, block_filter_list):
     path_blocks.update(return_all_contiguous_ores(hold_path_blocks, filtered_block_layout))
     return path_blocks
 
+def generate_absolute_path(path, chunkx1, chunkx2, chunkz1, chunkz2, chunky1, chunky2):
+    absolute_path = []
+    for chunk_x in range(chunkx1 * 16, chunkx2 * 16, 48):
+        for chunk_z in range(chunkz1 * 16, chunkz2 * 16, 48):
+            for chunk_y in range(chunky1 * 16, chunky2 * 16, 48):
+                for position in path:
+                    absolute_path.append((position[0] + chunk_x, position[1] + chunk_z, position[2] + chunk_y))
+    return absolute_path
+
 def get_path_blocks_with_coordinates(world, path, ore_count_dict, x_start, x_end, z_start, z_end, y_start, y_end):
     """ Takes: world, path, ore filter, coordinates
         Returns: path_blocks
@@ -190,21 +199,7 @@ def get_path_blocks_with_coordinates(world, path, ore_count_dict, x_start, x_end
                 world=world)
     except InconceivedChunk:
         pass
-    path_with_offset = []
-    for n_tuple in range(len(path)):
-        path_with_offset.append(
-                (path[n_tuple][0] + x_start*16, path[n_tuple][1] + z_start*16, path[n_tuple][2] + y_start*16)
-                )
-### troubleshooting
-    txs = []
-    tzs = []
-    tys = []
-    for i in path_with_offset:
-        txs.append(i[0])
-        tzs.append(i[1])
-        tys.append(i[2])
-###
-    return return_blocks(path_with_offset, set_of_chunks, ore_count_dict.keys())
+    return return_blocks(path, set_of_chunks, ore_count_dict.keys())
 
 def main():
 ### data
@@ -236,24 +231,22 @@ def main():
 
 
 ## visual confirmation of ores
-    def simulation_noplot():
+    def simulation_noplot(path):
         blocks_found = {}
         total_ores = copy.deepcopy(ore_count)
-        for z in range(-10, 11, 3):
-            for x in range(-10, 11,3):
-                blocks_found.update(get_path_blocks_with_coordinates(
-                        world,
-                        relative_path,
-                        ore_count,
-                        x_start=x,
-                        x_end=x + 3,
-                        z_start=z,
-                        z_end=z + 3,
-                        y_start=0,
-                        y_end=2)
-                        )
-                for blocktype in blocks_found.values():
-                    ore_count[blocktype] += 1
+        blocks_found.update(get_path_blocks_with_coordinates(
+                world,
+                path,
+                ore_count,
+                x_start=-10,
+                x_end=10,
+                z_start=-10,
+                z_end=10,
+                y_start=0,
+                y_end=2)
+                )
+        for blocktype in blocks_found.values():
+            ore_count[blocktype] += 1
         print "ore totals: ", ore_count
         print "blocks mined: ", sum(ore_count.values()) + len(relative_path)
         diamond_count = 0
@@ -262,24 +255,27 @@ def main():
                 diamond_count += 1
         print "diamond count is: ", diamond_count
 
-    def simulation_plot():
+    def simulation_plot(path):
         plot_chunk.plot_blocks(
-           path_plot=relative_path, 
+           path_plot=path, 
            #path_plot=None, 
+           #blocks_to_plot=None
            blocks_to_plot=get_path_blocks_with_coordinates(
                world,
-               relative_path,
+               path,
                ore_count,
-               x_start=0,
-               x_end=3,
-               z_start=0,
-               z_end=3,
+               x_start=-10,
+               x_end=10,
+               z_start=-10,
+               z_end=10,
                y_start=0,
-               y_end=2)
+               y_end=1)
            )
 
-    #simulation_noplot()
-    simulation_plot()
+    absolute_path = generate_absolute_path(relative_path, -10, 10, -10, 10, 0, 1)
+    simulation_noplot(absolute_path)
+    simulation_plot(absolute_path)
+    #simulation_plot(relative_path)
 
 if __name__ == "__main__":
     main()
