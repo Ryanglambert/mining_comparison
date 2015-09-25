@@ -114,26 +114,28 @@ def get_adjacency(mining_path_3d_array):
         mining_path_adjacency.append((coordinate_tuple[0] ,coordinate_tuple[1], coordinate_tuple[2] - 1))
     return mining_path_adjacency
 
-def return_contiguous_ores(ores, block_layout):
+def return_contiguous_ores(ores, block_layout, ignore_ores):
     assert type(ores) == dict
+    assert type(ignore_ores) == dict
     assert type(block_layout) == dict
     ores_to_return = ores
     for ore in ores.keys():
-        try:
-            if block_layout[ore] == block_layout[ore[0],ore[1] + 1,ore[2]] and (ore[0], ore[1] + 1, ore[2]) not in ores_to_return.keys():
-                ores_to_return[ore[0],ore[1] + 1, ore[2]] = block_layout[ore[0],ore[1] + 1, ore[2]]
-            if block_layout[ore] == block_layout[ore[0],ore[1] - 1 ,ore[2]] and (ore[0], ore[1] - 1, ore[2]) not in ores_to_return.keys():
-                ores_to_return[ore[0],ore[1] - 1, ore[2]] = block_layout[ore[0],ore[1] - 1, ore[2]]
-            if block_layout[ore] == block_layout[ore[0] + 1,ore[1] ,ore[2]] and (ore[0] + 1, ore[1], ore[2]) not in ores_to_return.keys():
-                ores_to_return[ore[0] + 1,ore[1], ore[2]] = block_layout[ore[0] + 1,ore[1], ore[2]]
-            if block_layout[ore] == block_layout[ore[0] - 1,ore[1] ,ore[2]] and (ore[0] - 1, ore[1], ore[2]) not in ores_to_return.keys():
-                ores_to_return[ore[0] - 1,ore[1], ore[2]] = block_layout[ore[0] - 1,ore[1], ore[2]]
-            if block_layout[ore] == block_layout[ore[0],ore[1],ore[2] + 1] and (ore[0], ore[1], ore[2] + 1) not in ores_to_return.keys():
-                ores_to_return[ore[0],ore[1], ore[2] + 1] = block_layout[ore[0],ore[1], ore[2] + 1]
-            if block_layout[ore] == block_layout[ore[0],ore[1],ore[2] - 1] and (ore[0], ore[1], ore[2] -1) not in ores_to_return.keys():
-                ores_to_return[ore[0],ore[1], ore[2] - 1] = block_layout[ore[0],ore[1], ore[2] - 1]
-        except KeyError:
-            continue
+        if ore not in ignore_ores.keys():
+            try:
+                if block_layout[ore] == block_layout[ore[0],ore[1] + 1,ore[2]] and (ore[0], ore[1] + 1, ore[2]) not in ores_to_return.keys():
+                    ores_to_return[ore[0],ore[1] + 1, ore[2]] = block_layout[ore[0],ore[1] + 1, ore[2]]
+                if block_layout[ore] == block_layout[ore[0],ore[1] - 1 ,ore[2]] and (ore[0], ore[1] - 1, ore[2]) not in ores_to_return.keys():
+                    ores_to_return[ore[0],ore[1] - 1, ore[2]] = block_layout[ore[0],ore[1] - 1, ore[2]]
+                if block_layout[ore] == block_layout[ore[0] + 1,ore[1] ,ore[2]] and (ore[0] + 1, ore[1], ore[2]) not in ores_to_return.keys():
+                    ores_to_return[ore[0] + 1,ore[1], ore[2]] = block_layout[ore[0] + 1,ore[1], ore[2]]
+                if block_layout[ore] == block_layout[ore[0] - 1,ore[1] ,ore[2]] and (ore[0] - 1, ore[1], ore[2]) not in ores_to_return.keys():
+                    ores_to_return[ore[0] - 1,ore[1], ore[2]] = block_layout[ore[0] - 1,ore[1], ore[2]]
+                if block_layout[ore] == block_layout[ore[0],ore[1],ore[2] + 1] and (ore[0], ore[1], ore[2] + 1) not in ores_to_return.keys():
+                    ores_to_return[ore[0],ore[1], ore[2] + 1] = block_layout[ore[0],ore[1], ore[2] + 1]
+                if block_layout[ore] == block_layout[ore[0],ore[1],ore[2] - 1] and (ore[0], ore[1], ore[2] -1) not in ores_to_return.keys():
+                    ores_to_return[ore[0],ore[1], ore[2] - 1] = block_layout[ore[0],ore[1], ore[2] - 1]
+            except KeyError:
+                continue
     return ores_to_return
 
 def get_subset_of_type(unfiltered_block_array, block_types):
@@ -146,9 +148,11 @@ def get_subset_of_type(unfiltered_block_array, block_types):
 
 def return_all_contiguous_ores(returned_ores, block_layout):
     prev_returned_ores_len = len(returned_ores.keys())
+    ores_already_counted = {}
     while True:
         #print "still running"
-        returned_ores = return_contiguous_ores(returned_ores, block_layout)
+        returned_ores = return_contiguous_ores(returned_ores, block_layout, ores_already_counted)
+        ores_already_counted.update(returned_ores)
         if len(returned_ores.keys()) <= prev_returned_ores_len:
             break
         prev_returned_ores_len = len(returned_ores.keys())
@@ -184,7 +188,7 @@ def generate_absolute_path(path, chunkx1, chunkx2, chunkz1, chunkz2, chunky1, ch
                     absolute_path.append((position[0] + chunk_x, position[1] + chunk_z, position[2] + chunk_y))
     return absolute_path
 
-def get_path_blocks_with_coordinates(world, path, ore_count_dict, x_start, x_end, z_start, z_end, y_start, y_end):
+def mine_blocks_with_path(world, path, ore_count_dict, x_start, x_end, z_start, z_end, y_start, y_end):
     """ Takes: world, path, ore filter, coordinates
         Returns: path_blocks
     """
@@ -238,7 +242,7 @@ def main():
         absolute_path = generate_absolute_path(relative_path, x1, x2, z1, z2, y1, y2)
 
     ### Mine!
-        blocks = get_path_blocks_with_coordinates(
+        blocks = mine_blocks_with_path(
                 world,
                 absolute_path,
                 ore_count,
