@@ -209,34 +209,34 @@ def main():
 
     world = load_world('/Users/ryanlambert/minecraft-server/world')
 
+### path information
+    relative_path = []
+    for y_pattern in xrange(0, 10, 3):
+        for x in xrange(6, 42, 12):
+            for z in xrange(2, 48):
+                for y in range(5 + y_pattern,7 + y_pattern):
+                    relative_path.append((x,z,y))
+            for z in xrange(3, 48, 4):
+                for x_2 in xrange(x, x + 5):
+                    for y in range(6 + y_pattern,7 + y_pattern):
+                        relative_path.append((x_2,z,y))
+                for x_3 in xrange(x - 5, x):
+                    for y in range(6 + y_pattern,7 + y_pattern):
+                        relative_path.append((x_3,z,y))
+    ore_count = {
+            'iron':0,
+            'diamond':0,
+            'redstone':0,
+            #'coal':0,
+            #'stone':0,
+            'gold':0
+            }
 
-    def simulation_plot(x1, x2, z1, z2, y1, y2):
+    def simulation_plot(x1, x2, z1, z2, y1, y2, relative_path, ore_count):
     ### ore filter
-        ore_count = {
-                'iron':0,
-                'diamond':0,
-                'redstone':0,
-                #'coal':0,
-                #'stone':0,
-                'gold':0
-                }
         blocks_found = {}
         total_ores = copy.deepcopy(ore_count)
     
-    ### path information
-        relative_path = []
-        for y_pattern in xrange(0, 10, 3):
-            for x in xrange(6, 42, 12):
-                for z in xrange(2, 48):
-                    for y in range(5 + y_pattern,7 + y_pattern):
-                        relative_path.append((x,z,y))
-                for z in xrange(3, 48, 4):
-                    for x_2 in xrange(x, x + 5):
-                        for y in range(6 + y_pattern,7 + y_pattern):
-                            relative_path.append((x_2,z,y))
-                    for x_3 in xrange(x - 5, x):
-                        for y in range(6 + y_pattern,7 + y_pattern):
-                            relative_path.append((x_3,z,y))
 
     ### Generate patterned absolute path
         absolute_path = generate_absolute_path(relative_path, x1, x2, z1, z2, y1, y2)
@@ -259,12 +259,12 @@ def main():
         print "blocks mined: ", sum(ore_count.values()) + len(relative_path)
 
     ### Plot!
-        plot_chunk.plot_blocks(
-            path_plot=absolute_path, 
-            blocks_to_plot=blocks
-            )
-    #simulation_plot(x1=-10, x2=10, z1=-10, z2=10, y1=0, y2=1)
-    simulation_plot(x1=0, x2=3, z1=0, z2=3, y1=0, y2=1)
+        #plot_chunk.plot_blocks(
+            #path_plot=absolute_path, 
+            #blocks_to_plot=blocks
+            #)
+    simulation_plot(x1=-10, x2=10, z1=-10, z2=10, y1=0, y2=1, relative_path=relative_path, ore_count=ore_count)
+    #simulation_plot(x1=0, x2=3, z1=0, z2=3, y1=0, y2=1)
 
 
 if __name__ == "__main__":
