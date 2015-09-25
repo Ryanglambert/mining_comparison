@@ -202,80 +202,66 @@ def get_path_blocks_with_coordinates(world, path, ore_count_dict, x_start, x_end
     return return_blocks(path, set_of_chunks, ore_count_dict.keys())
 
 def main():
-### data
-    ore_count = {
-            'iron':0,
-            'diamond':0,
-            'redstone':0,
-            'coal':0,
-            #'stone':0,
-            'gold':0
-            }
 
-### path information
-    relative_path = []
-    for x in xrange(6, 42, 12):
-        for z in xrange(2, 48):
-            for y in range(5,7):
-                relative_path.append((x,z,y))
-        for z in xrange(3, 48, 4):
-            for x_2 in xrange(x, x + 5):
-                for y in range(6,7):
-                    relative_path.append((x_2,z,y))
-            for x_3 in xrange(x - 5, x):
-                for y in range(6,7):
-                    relative_path.append((x_3,z,y))
-
-### simulate one set and tally ores
     world = load_world('/Users/ryanlambert/minecraft-server/world')
 
 
-## visual confirmation of ores
-    def simulation_noplot(path):
+    def simulation_plot(x1, x2, z1, z2, y1, y2):
+    ### ore filter
+        ore_count = {
+                'iron':0,
+                'diamond':0,
+                'redstone':0,
+                #'coal':0,
+                #'stone':0,
+                'gold':0
+                }
         blocks_found = {}
         total_ores = copy.deepcopy(ore_count)
-        blocks_found.update(get_path_blocks_with_coordinates(
+    
+    ### path information
+        relative_path = []
+        for y_pattern in xrange(0, 10, 3):
+            for x in xrange(6, 42, 12):
+                for z in xrange(2, 48):
+                    for y in range(5 + y_pattern,7 + y_pattern):
+                        relative_path.append((x,z,y))
+                for z in xrange(3, 48, 4):
+                    for x_2 in xrange(x, x + 5):
+                        for y in range(6 + y_pattern,7 + y_pattern):
+                            relative_path.append((x_2,z,y))
+                    for x_3 in xrange(x - 5, x):
+                        for y in range(6 + y_pattern,7 + y_pattern):
+                            relative_path.append((x_3,z,y))
+
+    ### Generate patterned absolute path
+        absolute_path = generate_absolute_path(relative_path, x1, x2, z1, z2, y1, y2)
+
+    ### Mine!
+        blocks = get_path_blocks_with_coordinates(
                 world,
-                path,
+                absolute_path,
                 ore_count,
-                x_start=-10,
-                x_end=10,
-                z_start=-10,
-                z_end=10,
-                y_start=0,
-                y_end=2)
-                )
-        for blocktype in blocks_found.values():
+                x_start=x1,
+                x_end=x2,
+                z_start=z1,
+                z_end=z2,
+                y_start=y1,
+                y_end=y2)
+    ### Tally up ores and blocks mined!
+        for blocktype in blocks.values():
             ore_count[blocktype] += 1
-        print "ore totals: ", ore_count
+        print ore_count
         print "blocks mined: ", sum(ore_count.values()) + len(relative_path)
-        diamond_count = 0
-        for ore in blocks_found.values():
-            if ore == 'diamond':
-                diamond_count += 1
-        print "diamond count is: ", diamond_count
 
-    def simulation_plot(path):
+    ### Plot!
         plot_chunk.plot_blocks(
-           path_plot=path, 
-           #path_plot=None, 
-           #blocks_to_plot=None
-           blocks_to_plot=get_path_blocks_with_coordinates(
-               world,
-               path,
-               ore_count,
-               x_start=-10,
-               x_end=10,
-               z_start=-10,
-               z_end=10,
-               y_start=0,
-               y_end=1)
-           )
+            path_plot=absolute_path, 
+            blocks_to_plot=blocks
+            )
+    #simulation_plot(x1=-10, x2=10, z1=-10, z2=10, y1=0, y2=1)
+    simulation_plot(x1=0, x2=3, z1=0, z2=3, y1=0, y2=1)
 
-    absolute_path = generate_absolute_path(relative_path, -10, 10, -10, 10, 0, 1)
-    simulation_noplot(absolute_path)
-    simulation_plot(absolute_path)
-    #simulation_plot(relative_path)
 
 if __name__ == "__main__":
     main()
