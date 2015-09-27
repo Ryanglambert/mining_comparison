@@ -205,19 +205,50 @@ def mine_blocks_with_path(world, path, ore_count_dict, x_start, x_end, z_start, 
         pass
     return return_blocks(path, set_of_chunks, ore_count_dict.keys())
 
+def simulation(x1, x2, z1, z2, y1, y2, relative_path, ore_count, world):
+### ore filter
+    blocks_found = {}
+    total_ores = copy.deepcopy(ore_count)
+
+
+### Generate patterned absolute path
+    absolute_path = generate_absolute_path(relative_path, x1, x2, z1, z2, y1, y2)
+
+### Mine!
+    blocks = mine_blocks_with_path(
+            world,
+            absolute_path,
+            ore_count,
+            x_start=x1,
+            x_end=x2,
+            z_start=z1,
+            z_end=z2,
+            y_start=y1,
+            y_end=y2)
+### Tally up ores and blocks mined!
+    for blocktype in blocks.values():
+        ore_count[blocktype] += 1
+
+    ## Plot!
+    plot_chunk.plot_blocks(
+        path_plot=None, 
+        blocks_to_plot=blocks
+        )
+    return blocks, absolute_path
+
 def main():
 
     world = load_world('/Users/ryanlambert/minecraft-server/world')
 
 ### path information
     relative_path = []
-    for y_pattern in xrange(0, 10, 3):
+    for y_pattern in xrange(0, 3, 3):
         for x in xrange(6, 42, 12):
             for z in xrange(2, 48):
                 for y in range(5 + y_pattern,7 + y_pattern):
                     relative_path.append((x,z,y))
             for z in xrange(3, 48, 4):
-                for x_2 in xrange(x, x + 5):
+                for x_2 in xrange(x, x + 6):
                     for y in range(6 + y_pattern,7 + y_pattern):
                         relative_path.append((x_2,z,y))
                 for x_3 in xrange(x - 5, x):
@@ -232,39 +263,8 @@ def main():
             'gold':0
             }
 
-    def simulation_plot(x1, x2, z1, z2, y1, y2, relative_path, ore_count):
-    ### ore filter
-        blocks_found = {}
-        total_ores = copy.deepcopy(ore_count)
-    
-
-    ### Generate patterned absolute path
-        absolute_path = generate_absolute_path(relative_path, x1, x2, z1, z2, y1, y2)
-
-    ### Mine!
-        blocks = mine_blocks_with_path(
-                world,
-                absolute_path,
-                ore_count,
-                x_start=x1,
-                x_end=x2,
-                z_start=z1,
-                z_end=z2,
-                y_start=y1,
-                y_end=y2)
-    ### Tally up ores and blocks mined!
-        for blocktype in blocks.values():
-            ore_count[blocktype] += 1
-        print ore_count
-        print "blocks mined: ", sum(ore_count.values()) + len(relative_path)
-
-    ### Plot!
-        #plot_chunk.plot_blocks(
-            #path_plot=absolute_path, 
-            #blocks_to_plot=blocks
-            #)
-    simulation_plot(x1=-10, x2=10, z1=-10, z2=10, y1=0, y2=1, relative_path=relative_path, ore_count=ore_count)
-    #simulation_plot(x1=0, x2=3, z1=0, z2=3, y1=0, y2=1)
+    simulation(x1=0, x2=3, z1=0, z2=3, y1=0, y2=1, relative_path=relative_path, ore_count=ore_count, world=world)
+    #simulation(x1=0, x2=3, z1=0, z2=3, y1=0, y2=1)
 
 
 if __name__ == "__main__":
