@@ -201,7 +201,7 @@ def mine_blocks_with_path(world, path, ore_count_dict, x_start, x_end, z_start, 
                 y1=y_start,
                 y2=y_end,
                 world=world)
-    except InconceivedChunk:
+    except:
         pass
     return return_blocks(path, set_of_chunks, ore_count_dict.keys())
 
