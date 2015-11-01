@@ -205,7 +205,7 @@ def mine_blocks_with_path(world, path, ore_count_dict, x_start, x_end, z_start, 
         pass
     return return_blocks(path, set_of_chunks, ore_count_dict.keys())
 
-def simulation(x1, x2, z1, z2, y1, y2, relative_path, ore_count, world):
+def simulation(x1, x2, z1, z2, y1, y2, relative_path, ore_count, world, plot=False):
 ### ore filter
     blocks_found = {}
     total_ores = copy.deepcopy(ore_count)
@@ -229,11 +229,13 @@ def simulation(x1, x2, z1, z2, y1, y2, relative_path, ore_count, world):
     for blocktype in blocks.values():
         ore_count[blocktype] += 1
 
-    ## Plot!
-    plot_chunk.plot_blocks(
-        path_plot=None, 
-        blocks_to_plot=blocks
-        )
+    # Plot!
+    if plot:
+
+        plot_chunk.plot_blocks(
+            path_plot=None, 
+            blocks_to_plot=blocks
+            )
     return blocks, absolute_path
 
 def main():
